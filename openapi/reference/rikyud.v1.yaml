@@ -1,0 +1,394 @@
+openapi: 3.0.0
+info:
+  title: rikyud
+  version: '1.0'
+  description: Daemon for Rikyu - manages projects and jobs.
+  contact:
+    name: Liam Pulles
+    url: 'https://github.com/liampulles/rikyu/issues'
+  license:
+    name: MIT
+    url: 'https://github.com/liampulles/rikyu/blob/master/LICENSE'
+servers:
+  - url: 'http://localhost:9119'
+    description: rikyud default
+paths:
+  /projects:
+    get:
+      summary: GetAll
+      tags:
+        - project
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ThinProjectResponse'
+              examples:
+                example-1:
+                  value:
+                    - uuid: 9adc149e-6352-4b24-a926-831de5d97a00
+                      name: 'X-Files: Season 1'
+                    - uuid: 3d2ae497-bdae-465e-9ea6-df1d7648ab64
+                      name: The Right Stuff
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  value:
+                    code: '1001'
+                    userMessage: Please try again.
+                    developerDetails: Cannot read the project file
+      operationId: get-projects
+      description: Get all projects currently managed by Rikyu.
+    post:
+      summary: Create
+      tags:
+        - project
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+              examples:
+                example-1:
+                  value:
+                    uuid: 9adc149e-6352-4b24-a926-831de5d97a00
+                    name: 'X-Files: Season 1'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  value:
+                    code: '1001'
+                    userMessage: Please try again.
+                    developerDetails: Cannot read the project file
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  value:
+                    code: '1001'
+                    userMessage: Please try again.
+                    developerDetails: Cannot read the project file
+      operationId: post-projects
+      description: Create a new Project from the submitted body.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+        description: ''
+  '/projects/{uuid}':
+    parameters:
+      - schema:
+          type: string
+          pattern: "^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}$"
+          maxLength: 36
+          minLength: 36
+        name: uuid
+        in: path
+        required: true
+        description: UUID of the project
+    get:
+      summary: Get
+      tags:
+        - project
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+              examples:
+                example-1:
+                  value:
+                    uuid: 9adc149e-6352-4b24-a926-831de5d97a00
+                    name: 'X-Files: Season 1'
+                    templates:
+                      - uuid: 40f40f6f-e101-44cd-806c-2e41dc4b855b
+                        name: Episode
+                      - uuid: 07aa3866-1373-4acd-9d6f-e73df484d8cf
+                        name: Deleted Scene
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  value:
+                    code: '1001'
+                    userMessage: Please try again.
+                    developerDetails: Cannot read the project file
+      operationId: get-projects-id
+      description: Get a single project being managed by Rikyu.
+    put:
+      summary: Update
+      tags:
+        - project
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+              examples:
+                example-1:
+                  value:
+                    uuid: 9adc149e-6352-4b24-a926-831de5d97a00
+                    name: 'X-Files: Season 1'
+                    templates:
+                      - uuid: 40f40f6f-e101-44cd-806c-2e41dc4b855b
+                        name: Episode
+                      - uuid: 07aa3866-1373-4acd-9d6f-e73df484d8cf
+                        name: Deleted Scene
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  value:
+                    code: '1001'
+                    userMessage: Please try again.
+                    developerDetails: Cannot read the project file
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  value:
+                    code: '1001'
+                    userMessage: Please try again.
+                    developerDetails: Cannot read the project file
+      operationId: put-projects-id
+      description: Update a project by posting the contents of the project.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+    delete:
+      summary: Delete
+      tags:
+        - project
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  value:
+                    code: '1001'
+                    userMessage: Please try again.
+                    developerDetails: Cannot read the project file
+      operationId: delete-projects-id
+      description: Delete a project from the disk.
+  /projects/manage:
+    post:
+      summary: Manage
+      tags:
+        - project
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+              examples:
+                example-1:
+                  value:
+                    uuid: 9adc149e-6352-4b24-a926-831de5d97a00
+                    name: 'X-Files: Season 1'
+                    templates:
+                      - uuid: 40f40f6f-e101-44cd-806c-2e41dc4b855b
+                        name: Episode
+                      - uuid: 07aa3866-1373-4acd-9d6f-e73df484d8cf
+                        name: Deleted Scene
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  value:
+                    code: '1001'
+                    userMessage: Please try again.
+                    developerDetails: Cannot read the project file
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                example-1:
+                  value:
+                    code: '1001'
+                    userMessage: Please try again.
+                    developerDetails: Cannot read the project file
+      operationId: post-projects-manage
+      description: Start managing a project file on the disk.
+    parameters: []
+  '/projects/manage/{uuid}':
+    parameters:
+      - schema:
+          type: string
+          maxLength: 36
+          minLength: 36
+          pattern: "^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}$"
+        name: uuid
+        in: path
+        required: true
+        description: UUID of the project
+    delete:
+      summary: Yield
+      tags:
+        - project
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+              examples:
+                example-1:
+                  value:
+                    code: '1001'
+                    userMessage: Please try again.
+                    developerDetails: Cannot read the project file
+      operationId: delete-projects-manage-id
+      description: Stop managing a project.
+components:
+  schemas:
+    ThinProjectResponse:
+      title: ThinProjectResponse
+      type: object
+      x-tags:
+        - project
+      description: Provides basic information about a project.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+      required:
+        - uuid
+        - name
+    ErrorResponse:
+      title: ErrorResponse
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+        userMessage:
+          type: string
+          minLength: 1
+        developerDetails:
+          type: string
+          minLength: 1
+      required:
+        - code
+        - userMessage
+        - developerDetails
+    CreateProjectRequest:
+      title: CreateProjectRequest
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+      required:
+        - name
+    UpdateProjectRequest:
+      title: UpdateProjectRequest
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+      required:
+        - name
+    ProjectResponse:
+      title: ProjectView
+      type: object
+      x-tags:
+        - project
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+        templates:
+          type: array
+          items:
+            type: object
+            properties:
+              uuid:
+                type: string
+                format: uuid
+              name:
+                type: string
+                minLength: 1
+            required:
+              - uuid
+              - name
+      required:
+        - uuid
+        - name
+        - templates
+tags:
+  - name: project
+    description: Everything about projects
