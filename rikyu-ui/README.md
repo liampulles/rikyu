@@ -1,4 +1,4 @@
-# rickyu-ui
+# rikyu-ui
 
 ## Project setup
 ```
