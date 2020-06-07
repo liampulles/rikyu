@@ -67,6 +67,18 @@ func TestReadDVDInfoForDirectory_WhenLsdvdReturnsValidXML_ShouldTransformIntoVal
 	}
 }
 
+// func TestRealDVD(t *testing.T) {
+// 	ds := exec.NewDockerServiceImpl(func() (exec.DockerClientWrapper, error) {
+// 		return client.NewEnvClient()
+// 	})
+// 	dvdInfoServiceImpl := dvd.NewDVDInfoServiceImpl(ds)
+
+// 	dvd, err := dvdInfoServiceImpl.ReadDVDInfoForDirectory("/media/liam/XFILES_S1_DISC1/")
+
+// 	fmt.Println(dvd)
+// 	fmt.Println(err)
+// }
+
 type mockDockerService struct {
 	stdOut string
 	stdErr string

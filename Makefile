@@ -17,6 +17,5 @@ update:
 pre-commit: update clean coverage.txt inspect
 	go mod tidy
 clean:
-	rm -f ${GOPATH}/bin/actor
-	rm -f ${GOPATH}/bin/stage
+	rm -f ${GOPATH}/bin/rikyud
 	rm -f coverage.txt

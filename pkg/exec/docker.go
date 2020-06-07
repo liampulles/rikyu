@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"os"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -16,10 +17,12 @@ type DockerService interface {
 }
 
 type DockerClientWrapper interface {
+	ImagePull(ctx context.Context, ref string, options types.ImagePullOptions) (io.ReadCloser, error)
 	ContainerCreate(ctx context.Context, config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig, containerName string) (container.ContainerCreateCreatedBody, error)
 	ContainerStart(ctx context.Context, containerID string, options types.ContainerStartOptions) error
 	ContainerWait(ctx context.Context, containerID string) (int64, error)
 	ContainerLogs(ctx context.Context, container string, options types.ContainerLogsOptions) (io.ReadCloser, error)
+	ContainerRemove(ctx context.Context, containerID string, options types.ContainerRemoveOptions) error
 }
 
 type DockerServiceImpl struct {
@@ -61,8 +64,15 @@ func (dsi *DockerServiceImpl) RunDockerContainerForOutput(image string, mounts [
 		hostConfig = &container.HostConfig{Mounts: ms}
 	}
 
-	// Create container
+	// Pull container
 	ctx := context.Background()
+	r, err := cli.ImagePull(ctx, image, types.ImagePullOptions{})
+	if err != nil {
+		return "", "", err
+	}
+	io.Copy(os.Stderr, r)
+
+	// Create container
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: image,
 		Cmd:   args,
@@ -97,6 +107,11 @@ func (dsi *DockerServiceImpl) RunDockerContainerForOutput(image string, mounts [
 	buf = new(bytes.Buffer)
 	buf.ReadFrom(stdErr)
 	stdErrStr := buf.String()
+
+	// Remove container
+	if err := cli.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions{}); err != nil {
+		return "", "", err
+	}
 
 	return stdOutStr, stdErrStr, nil
 }

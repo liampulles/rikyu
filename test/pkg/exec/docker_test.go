@@ -38,11 +38,36 @@ func TestRunDockerContainerForOutput_WhenDockerClientFuncFails_ShouldFail(t *tes
 	}
 }
 
+func TestRunDockerContainerForOutput_WhenImagePullFails_ShouldFail(t *testing.T) {
+	// Setup fixture
+	expectedErr := fmt.Errorf("fail client")
+	dsi := exec.NewDockerServiceImpl(func() (exec.DockerClientWrapper, error) {
+		return &mockClient{
+			imagePullErr: expectedErr,
+		}, nil
+	})
+
+	// Exercise SUT
+	actualOut, actualErr, err := dsi.RunDockerContainerForOutput("some image", nil, nil)
+
+	// Verify results
+	if actualOut != "" {
+		t.Errorf("Expected actualOut to be empty, but was %s", actualOut)
+	}
+	if actualErr != "" {
+		t.Errorf("Expected actualErr to be empty, but was %s", actualErr)
+	}
+	if !reflect.DeepEqual(err, expectedErr) {
+		t.Errorf("Error mismatch\nExpected: %v\nActual: %v", expectedErr, err)
+	}
+}
+
 func TestRunDockerContainerForOutput_WhenContainerCreateFails_ShouldFail(t *testing.T) {
 	// Setup fixture
 	expectedErr := fmt.Errorf("fail client")
 	dsi := exec.NewDockerServiceImpl(func() (exec.DockerClientWrapper, error) {
 		return &mockClient{
+			imagePullResp:      "image-pull",
 			containerCreateErr: expectedErr,
 		}, nil
 	})
@@ -67,6 +92,7 @@ func TestRunDockerContainerForOutput_WhenContainerStartFails_ShouldFail(t *testi
 	expectedErr := fmt.Errorf("fail client")
 	dsi := exec.NewDockerServiceImpl(func() (exec.DockerClientWrapper, error) {
 		return &mockClient{
+			imagePullResp:         "image-pull",
 			containerCreateRespId: "id",
 			containerStartErr:     expectedErr,
 		}, nil
@@ -92,6 +118,7 @@ func TestRunDockerContainerForOutput_WhenContainerWaitFails_ShouldFail(t *testin
 	expectedErr := fmt.Errorf("fail client")
 	dsi := exec.NewDockerServiceImpl(func() (exec.DockerClientWrapper, error) {
 		return &mockClient{
+			imagePullResp:         "image-pull",
 			containerCreateRespId: "id",
 			containerWaitErr:      expectedErr,
 		}, nil
@@ -117,6 +144,7 @@ func TestRunDockerContainerForOutput_WhenContainerLogsForStdOutFails_ShouldFail(
 	expectedErr := fmt.Errorf("fail client")
 	dsi := exec.NewDockerServiceImpl(func() (exec.DockerClientWrapper, error) {
 		return &mockClient{
+			imagePullResp:          "image-pull",
 			containerCreateRespId:  "id",
 			containerLogsStdOutErr: expectedErr,
 		}, nil
@@ -142,9 +170,38 @@ func TestRunDockerContainerForOutput_WhenContainerLogsForStdErrFails_ShouldFail(
 	expectedErr := fmt.Errorf("fail client")
 	dsi := exec.NewDockerServiceImpl(func() (exec.DockerClientWrapper, error) {
 		return &mockClient{
+			imagePullResp:           "image-pull",
 			containerCreateRespId:   "id",
 			containerLogsStdOutResp: "stdout",
 			containerLogsStdErrErr:  expectedErr,
+		}, nil
+	})
+
+	// Exercise SUT
+	actualOut, actualErr, err := dsi.RunDockerContainerForOutput("some image", nil, nil)
+
+	// Verify results
+	if actualOut != "" {
+		t.Errorf("Expected actualOut to be empty, but was %s", actualOut)
+	}
+	if actualErr != "" {
+		t.Errorf("Expected actualErr to be empty, but was %s", actualErr)
+	}
+	if !reflect.DeepEqual(err, expectedErr) {
+		t.Errorf("Error mismatch\nExpected: %v\nActual: %v", expectedErr, err)
+	}
+}
+
+func TestRunDockerContainerForOutput_WhenContainerRemoveFails_ShouldFail(t *testing.T) {
+	// Setup fixture
+	expectedErr := fmt.Errorf("fail client")
+	dsi := exec.NewDockerServiceImpl(func() (exec.DockerClientWrapper, error) {
+		return &mockClient{
+			imagePullResp:           "image-pull",
+			containerCreateRespId:   "id",
+			containerLogsStdOutResp: "stdout",
+			containerLogsStdErrResp: "stderr",
+			containerRemoveErr:      expectedErr,
 		}, nil
 	})
 
@@ -169,6 +226,7 @@ func TestRunDockerContainerForOutput_WhenDockerPerformsAsExpected_ShouldReturnRe
 	expectedStdErr := "stderr"
 	dsi := exec.NewDockerServiceImpl(func() (exec.DockerClientWrapper, error) {
 		return &mockClient{
+			imagePullResp:           "image-pull",
 			containerCreateRespId:   "id",
 			containerLogsStdOutResp: expectedStdOut,
 			containerLogsStdErrResp: expectedStdErr,
@@ -197,6 +255,8 @@ func TestRunDockerContainerForOutput_WhenDockerPerformsAsExpected_ShouldReturnRe
 }
 
 type mockClient struct {
+	imagePullResp           string
+	imagePullErr            error
 	containerCreateRespId   string
 	containerCreateErr      error
 	containerStartErr       error
@@ -206,6 +266,11 @@ type mockClient struct {
 	containerLogsStdOutErr  error
 	containerLogsStdErrResp string
 	containerLogsStdErrErr  error
+	containerRemoveErr      error
+}
+
+func (mc *mockClient) ImagePull(ctx context.Context, ref string, options types.ImagePullOptions) (io.ReadCloser, error) {
+	return ioutil.NopCloser(strings.NewReader(mc.imagePullResp)), mc.imagePullErr
 }
 
 func (mc *mockClient) ContainerCreate(ctx context.Context, config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig, containerName string) (container.ContainerCreateCreatedBody, error) {
@@ -230,4 +295,8 @@ func (mc *mockClient) ContainerLogs(ctx context.Context, container string, optio
 		return ioutil.NopCloser(strings.NewReader(mc.containerLogsStdErrResp)), mc.containerLogsStdErrErr
 	}
 	return nil, nil
+}
+
+func (mc *mockClient) ContainerRemove(ctx context.Context, containerID string, options types.ContainerRemoveOptions) error {
+	return mc.containerRemoveErr
 }

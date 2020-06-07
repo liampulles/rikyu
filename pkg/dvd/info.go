@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	lsdvdImage = "liampulles/lsdvd:latest"
+	lsdvdImage = "docker.io/lpulles/dvdtools:latest"
 )
 
 type lsdvdDVD struct {
