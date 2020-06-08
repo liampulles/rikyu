@@ -60,9 +60,20 @@ Yep, that is all you need!
   1. Start `rikyud`
   1. Head to http://localhost:9119 and start running and observing jobs!
 
-## How it works
+## Workflow
 
-TODO: Expand this
+### Ripping the DVDs
+
+1. Start the interface
+1. Select a Project / Create new
+1. Insert the DVD
+1. Interface is populated with title sets
+1. Largest title is automatically selected as 'Main' if previous categories don't exist on project - otherwise those are assigned where predicted.
+1. Assign categories to titles (can create new category)
+    * Categories can be unique or sequential, if sequential the no. is guessed, but can be set explicitly.
+    * You can guess assign categories.
+    * You can launch the title in a video player, which starts from the middle, just to help you see what it is.
+1. Select 'Rip' to rip the titles to appropriate category folders.
 
 ## Contributing
 

@@ -5,6 +5,8 @@ import (
 	"math"
 	"time"
 
+	"github.com/liampulles/rikyu/pkg/types"
+
 	"github.com/liampulles/rikyu/pkg/exec"
 )
 
@@ -73,7 +75,7 @@ type lsdvdSubp struct {
 }
 
 type DVDInfoService interface {
-	ReadDVDInfoForDirectory(dir string) (*DVD, error)
+	ReadDVDInfoForDirectory(dir string) (*types.DVD, error)
 }
 
 type DVDInfoServiceImpl struct {
@@ -88,7 +90,7 @@ func NewDVDInfoServiceImpl(dockerService exec.DockerService) *DVDInfoServiceImpl
 	}
 }
 
-func (dis *DVDInfoServiceImpl) ReadDVDInfoForDirectory(dir string) (*DVD, error) {
+func (dis *DVDInfoServiceImpl) ReadDVDInfoForDirectory(dir string) (*types.DVD, error) {
 	// Get StdOut
 	mounts := []exec.DockerVolumeMount{
 		{
@@ -116,14 +118,14 @@ func (dis *DVDInfoServiceImpl) ReadDVDInfoForDirectory(dir string) (*DVD, error)
 	return mapLsdvdStructToDVD(&data), nil
 }
 
-func mapLsdvdStructToDVD(in *lsdvdDVD) *DVD {
-	titleSetMap := make(map[int][]Title)
+func mapLsdvdStructToDVD(in *lsdvdDVD) *types.DVD {
+	titleSetMap := make(map[int][]types.Title)
 	for _, track := range in.Track {
 		// Audio
-		var audioTracks []Audio
+		var audioTracks []types.Audio
 		for _, lsAud := range track.Audio {
-			audioTrack := Audio{
-				Language: Language{
+			audioTrack := types.Audio{
+				Language: types.Language{
 					Code: lsAud.LangCode,
 					Name: lsAud.Language,
 				},
@@ -136,10 +138,10 @@ func mapLsdvdStructToDVD(in *lsdvdDVD) *DVD {
 			audioTracks = append(audioTracks, audioTrack)
 		}
 		// Subtitles
-		var subtitleTracks []Subtitle
+		var subtitleTracks []types.Subtitle
 		for _, lsSub := range track.Subp {
-			subtitleTrack := Subtitle{
-				Language: Language{
+			subtitleTrack := types.Subtitle{
+				Language: types.Language{
 					Code: lsSub.LangCode,
 					Name: lsSub.Language,
 				},
@@ -148,9 +150,9 @@ func mapLsdvdStructToDVD(in *lsdvdDVD) *DVD {
 			subtitleTracks = append(subtitleTracks, subtitleTrack)
 		}
 		// Chapters
-		var chapters []Chapter
+		var chapters []types.Chapter
 		for _, lsChap := range track.Chapter {
-			chapter := Chapter{
+			chapter := types.Chapter{
 				Length:    durationFromSecs(lsChap.Length),
 				StartCell: lsChap.StartCell,
 			}
@@ -158,21 +160,21 @@ func mapLsdvdStructToDVD(in *lsdvdDVD) *DVD {
 		}
 		// Cells
 		length := time.Duration(0)
-		var cells []Cell
+		var cells []types.Cell
 		for _, lsCell := range track.Cell {
-			cell := Cell{
+			cell := types.Cell{
 				Length: durationFromSecs(lsCell.Length),
 			}
 			cells = append(cells, cell)
 			length += cell.Length
 		}
 		// Palette
-		var palette Palette
+		var palette types.Palette
 		for i, lsCol := range track.Palette {
 			palette[i] = lsCol
 		}
 		// Finally, the title
-		title := Title{
+		title := types.Title{
 			TitleNumber:        track.IX,
 			Angles:             track.Angles,
 			FPS:                track.FPS,
@@ -190,13 +192,13 @@ func mapLsdvdStructToDVD(in *lsdvdDVD) *DVD {
 		titleSetMap[track.Vts] = append(titleSetMap[track.Vts], title)
 	}
 	// TitleSets
-	var titleSets []TitleSet
+	var titleSets []types.TitleSet
 	for _, titles := range titleSetMap {
-		titleSets = append(titleSets, TitleSet{
+		titleSets = append(titleSets, types.TitleSet{
 			Titles: titles,
 		})
 	}
-	return &DVD{
+	return &types.DVD{
 		DiscTitle: in.Title,
 		TitleSets: titleSets,
 	}

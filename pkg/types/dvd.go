@@ -1,4 +1,4 @@
-package dvd
+package types
 
 import (
 	"time"
@@ -15,12 +15,6 @@ type FPS struct {
 type Language struct {
 	Code string
 	Name string
-}
-
-type AspectRation struct {
-	Numerator   int
-	Denominator int
-	Value       float64
 }
 
 type DVD struct {
