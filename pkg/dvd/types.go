@@ -2,11 +2,13 @@ package dvd
 
 import (
 	"github.com/liampulles/rikyu/pkg/exec"
+	"github.com/liampulles/rikyu/pkg/system"
 	"github.com/liampulles/rikyu/pkg/types"
 )
 
 const (
-	lsdvdImage = "docker.io/lpulles/dvdtools:latest"
+	lsdvdImage     = "docker.io/lpulles/dvdtools:latest"
+	dvdbackupImage = "docker.io/lpulles/dvdtools:latest"
 )
 
 type lsdvdDVD struct {
@@ -71,16 +73,19 @@ type lsdvdSubp struct {
 
 type DVDService interface {
 	ReadDVDInfoForDirectory(dir string) (*types.DVD, error)
+	RipTitles(dvdDir string, titlesToDirs map[int]string) error
 }
 
 type DVDServiceImpl struct {
 	dockerService exec.DockerService
+	systemService system.SystemService
 }
 
 var _ DVDService = &DVDServiceImpl{}
 
-func NewDVDServiceImpl(dockerService exec.DockerService) *DVDServiceImpl {
+func NewDVDServiceImpl(dockerService exec.DockerService, systemService system.SystemService) *DVDServiceImpl {
 	return &DVDServiceImpl{
 		dockerService: dockerService,
+		systemService: systemService,
 	}
 }

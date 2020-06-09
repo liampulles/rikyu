@@ -53,9 +53,10 @@ func (dsi *DockerServiceImpl) RunDockerContainerForOutput(image string, mounts [
 	var ms []mount.Mount
 	for _, dvm := range mounts {
 		m := mount.Mount{
-			Type:   mount.TypeBind,
-			Source: dvm.Host,
-			Target: dvm.Container,
+			Type:     mount.TypeBind,
+			Source:   dvm.Host,
+			Target:   dvm.Container,
+			ReadOnly: false,
 		}
 		ms = append(ms, m)
 	}
