@@ -23,3 +23,8 @@ func (ssi *SystemServiceImpl) GetFilesInDir(dir string) ([]string, error) {
 	}
 	return result, nil
 }
+
+func (ssi *SystemServiceImpl) PathExists(path string) bool {
+	_, err := ssi.stat(path)
+	return !os.IsNotExist(err)
+}

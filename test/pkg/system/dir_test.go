@@ -22,7 +22,7 @@ func TestCreateDirRecursive_ShouldPassCorrectParamsToMkDirAll(t *testing.T) {
 		passedPerm = perm
 		return expected
 	}
-	ssi := system.NewSystemServiceImpl(mkdirMock, nil)
+	ssi := system.NewSystemServiceImpl(mkdirMock, nil, nil, nil, nil)
 
 	// Exercise SUT
 	actual := ssi.CreateDirRecursive(expectedDir)
@@ -44,7 +44,7 @@ func TestGetFilesInDir_WhenCannotReadDir_ShouldReturnErr(t *testing.T) {
 	readDirMock := func(dirname string) ([]os.FileInfo, error) {
 		return nil, fmt.Errorf("some error")
 	}
-	ssi := system.NewSystemServiceImpl(nil, readDirMock)
+	ssi := system.NewSystemServiceImpl(nil, nil, readDirMock, nil, nil)
 
 	// Exercise SUT
 	actual, err := ssi.GetFilesInDir("some dir")
@@ -68,7 +68,7 @@ func TestGetFilesInDir_WhenCanReadDir_ShouldReturnFiles(t *testing.T) {
 			&mockFileInfo{name: "file2", isDir: false},
 		}, nil
 	}
-	ssi := system.NewSystemServiceImpl(nil, readDirMock)
+	ssi := system.NewSystemServiceImpl(nil, nil, readDirMock, nil, nil)
 	expected := []string{"file1", "file2"}
 
 	// Exercise SUT
@@ -80,6 +80,54 @@ func TestGetFilesInDir_WhenCanReadDir_ShouldReturnFiles(t *testing.T) {
 	}
 	if !reflect.DeepEqual(actual, expected) {
 		t.Errorf("Response mismatch\nExpected: %v\nActual: %v", expected, actual)
+	}
+}
+
+func TestPathExists_WhenCannotStatPath_ShouldReturnExists(t *testing.T) {
+	// Setup fixture
+	failingStat := func(name string) (os.FileInfo, error) {
+		return &mockFileInfo{}, fmt.Errorf("arbitrary error")
+	}
+	ssi := system.NewSystemServiceImpl(nil, failingStat, nil, nil, nil)
+
+	// Exercise SUT
+	actual := ssi.PathExists("some path")
+
+	// Verify results
+	if !actual {
+		t.Errorf("Expected result to be true, but was %t", actual)
+	}
+}
+
+func TestPathExists_WhenCannotStatPathDueToNotExisting_ShouldReturnNotExists(t *testing.T) {
+	// Setup fixture
+	failingStat := func(name string) (os.FileInfo, error) {
+		return &mockFileInfo{}, os.ErrNotExist
+	}
+	ssi := system.NewSystemServiceImpl(nil, failingStat, nil, nil, nil)
+
+	// Exercise SUT
+	actual := ssi.PathExists("some path")
+
+	// Verify results
+	if actual {
+		t.Errorf("Expected result to be false, but was %t", actual)
+	}
+}
+
+func TestPathExists_WhenCanStatPath_ShouldReturnExists(t *testing.T) {
+	// Setup fixture
+	failingStat := func(name string) (os.FileInfo, error) {
+		return &mockFileInfo{}, nil
+	}
+	ssi := system.NewSystemServiceImpl(nil, failingStat, nil, nil, nil)
+
+	// Exercise SUT
+	actual := ssi.PathExists("some path")
+
+	// Verify results
+	if !actual {
+		t.Errorf("Expected result to be true, but was %t", actual)
 	}
 }
 

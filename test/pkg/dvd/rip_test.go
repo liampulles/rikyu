@@ -199,6 +199,18 @@ func (mss *mockSystemService) GetFilesInDir(string) ([]string, error) {
 	return mss.getFilesInDirResp, mss.getFilesInDirErr
 }
 
+func (mss *mockSystemService) PathExists(path string) bool {
+	return false
+}
+
+func (mss *mockSystemService) OverwriteFile(path string, data []byte) error {
+	return nil
+}
+
+func (mss *mockSystemService) ReadFile(path string) ([]byte, error) {
+	return nil, nil
+}
+
 type mockDockerServiceWhichPopulatesDir struct {
 	systemService *mockSystemService
 	filesToPlace  []string

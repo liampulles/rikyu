@@ -1,19 +1,18 @@
 package types
 
 type Project struct {
-	UniqueCategories     []UniqueCategory
-	SequentialCategories []SequentialCategory
+	Name string `json:"name"`
 	// TODO: Templates
 	// TODO: Jobs
-	// TODO: Path on hard drive
+	Path string `json:"-"`
 }
 
 type UniqueCategory struct {
-	Name  string
-	Title Title
+	Name  string `json:"name"`
+	Title Title  `json:"title"`
 }
 
 type SequentialCategory struct {
-	Name   string
-	Titles map[int]Title
+	Name   string        `json:"name"`
+	Titles map[int]Title `json:"titles"`
 }
