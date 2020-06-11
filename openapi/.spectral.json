@@ -1,7 +1,0 @@
-{
-  "formats": [],
-  "extends": [
-    "spectral:oas"
-  ],
-  "rules": {}
-}
