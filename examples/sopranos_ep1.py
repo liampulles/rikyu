@@ -2,10 +2,10 @@ from pathlib import Path
 
 from rikyu import Project, Seq, Uniq
 
-proj = Project(Path("/media/liam/Additional 2/Encodes/Sopranos1"))
+proj = Project(Path("/media/liam/Additional 2/Encodes/testdir/"))
 
 # TODO: Rerun for each disc, then comment out
-proj.rip_from_folder(Path("/media/liam/SOPRANOS_SEASON1_DISC1/"))\
+proj.rip_from_folder(Path("/media/liam/SOPRANOS_SEASON1_DISC2/"))\
     .title(1, Seq("episode", 1))\
     .title(3, Seq("episode", 2))\
     .title(4, Seq("episode", 3))\
@@ -13,17 +13,17 @@ proj.rip_from_folder(Path("/media/liam/SOPRANOS_SEASON1_DISC1/"))\
     .rip()
 
 # TODO: Work on episodes
-ep_pipe = pipeline([
-    step("human_subtitle_complete", human(providing="subtitles")),
-    step("extract", vob_extract(audio=True, chapters=True)),
-    step("human_chapter_complete", human(providing="chapters"), depends_on=["extract"]),
-    step("video", x264(crf=21.0, preset="very_slow", tune="film", vapoursynth=vap), depends_on=["extract"]),
-    step("filter_audio", filter_(has_language("en") and is_largest()) or has_content("commentary"))),
-    step("audio", eac3to(codec="opus", slowdown=True, dpl2=True), depends_on=["extract"]),
-    step("fetch_metadata", imdb(series="Sopranos", season=1)),
-    step("mux", mkvmerge(video_fps=23.976), depends_on=["human_subtitle_complete", "human_chapter_complete", "video", "audio", "fetch_metadata"])
-    ])
-proj.apply_pipeline(ep_pipe, [seq("episode", i) for i in range(1,14)])
+# ep_pipe = pipeline([
+#     step("human_subtitle_complete", human(providing="subtitles")),
+#     step("extract", vob_extract(audio=True, chapters=True)),
+#     step("human_chapter_complete", human(providing="chapters"), depends_on=["extract"]),
+#     step("video", x264(crf=21.0, preset="very_slow", tune="film", vapoursynth=vap), depends_on=["extract"]),
+#     step("filter_audio", filter_(has_language("en") and is_largest()) or has_content("commentary"))),
+#     step("audio", eac3to(codec="opus", slowdown=True, dpl2=True), depends_on=["extract"]),
+#     step("fetch_metadata", imdb(series="Sopranos", season=1)),
+#     step("mux", mkvmerge(video_fps=23.976), depends_on=["human_subtitle_complete", "human_chapter_complete", "video", "audio", "fetch_metadata"])
+#     ])
+# proj.apply_pipeline(ep_pipe, [seq("episode", i) for i in range(1,14)])
 
 # ...and similar for extras.
 

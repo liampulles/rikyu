@@ -5,11 +5,15 @@ from typing import List, BinaryIO
 
 from rikyu import error
 
+exclude_rikyu_pattern = "**/.rikyu*"
 
-def dir_hash(path: Path) -> str:
+
+def dir_hash(path: Path, excluding_glob=None) -> str:
     sha = md5()
     files = _all_files_in(path)
-    sorted(files, key=lambda f: f.as_posix())
+    if excluding_glob:
+        files = list(filter(lambda fi: not fi.match(excluding_glob), files))
+    sorted(files, key=lambda fi: fi.as_posix())
 
     for f in files:
         sha.update(file_hash(path, f).encode())

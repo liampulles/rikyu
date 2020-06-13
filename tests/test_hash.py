@@ -141,6 +141,18 @@ class DirHashTestSuite(unittest.TestCase):
         # Verify results
         self.assertNotEqual(actual1, actual2)
 
+    def test_dir_hash__given_two_different_trees_but_pattern_excludes_difference__should_have_same_hash(self):
+        # Setup fixture
+        fixture1 = _testdata_path(["hash", "difffilesdir1"])
+        fixture2 = _testdata_path(["hash", "difffilesdir2"])
+
+        # Exercise SUT
+        actual1 = hash.dir_hash(fixture1, excluding_glob="**/exclude*")
+        actual2 = hash.dir_hash(fixture2, excluding_glob="**/exclude*")
+
+        # Verify results
+        self.assertEqual(actual1, actual2)
+
 
 def _testdata_path(locations: List[str]) -> Path:
     base = Path(THIS_DIR, "testdata")
