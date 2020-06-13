@@ -28,17 +28,20 @@ def run_steps(steps: List[StepDefinition]):
     for step in steps:
         already_ran = init(step.path, step.op_id)
         step.should_skip = already_ran
+        # "Lock" the directories for our use
+        if not already_ran:
+            rikyu_file = Path(step.path, ".rikyu.step")
+            file.save_obj(StepRecord(step.op_id, hash.dir_hash(step.path, hash.exclude_rikyu_pattern)), rikyu_file)
     # Run the steps
     for step in steps:
         if step.should_skip:
             print(f"-> Skipping step (already done): {step.op_id}")
             continue
-        # Create init record
-        rikyu_file = Path(step.path, ".rikyu.step")
-        file.save_obj(StepRecord(step.op_id, hash.dir_hash(step.path, hash.exclude_rikyu_pattern)), rikyu_file)
+        # Actually run the step
         print(f"-> Running step: {step.op_id}")
         step.step_exec()
         # Update record with final dir hash
+        rikyu_file = Path(step.path, ".rikyu.step")
         file.save_obj(StepRecord(step.op_id, hash.dir_hash(step.path, hash.exclude_rikyu_pattern)), rikyu_file)
 
 

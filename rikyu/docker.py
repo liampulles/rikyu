@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import List, Callable, Tuple
 
+import docker
+from docker.types import Mount
+
 from rikyu import step
 
 
@@ -15,7 +18,7 @@ def docker_step_def(image: str,
         _op_in(inputs),
         str(output.relative_to(base))
     )
-    step_exec = _step_exec(output)
+    step_exec = _step_exec(image, inputs, output, bash, args)
     return step.StepDefinition(
         op_id,
         output,
@@ -23,10 +26,30 @@ def docker_step_def(image: str,
     )
 
 
-def _step_exec(output: Path) -> Callable[[], None]:
+def _step_exec(image: str,
+               inputs: List[Tuple[str, Path]],
+               output: Path,
+               bash: str = None,
+               args: List[str] = None) -> Callable[[], None]:
+    if bash is not None:
+        cmd = bash
+    if args is not None:
+        cmd = args
+    mounts = [Mount(target=f"/in/{i[0]}", source=str(i[1]), read_only=True, type="bind") for i in inputs]
+    mounts += [Mount(target="/out", source=str(output), read_only=False, type="bind")]
+
     def _func():
-        with Path(output, "docker_test").open("w") as f:
-            f.write("docker test!")
+        client = docker.from_env()
+        logs = client.containers.run(
+            image=image,
+            command=cmd,
+            stdout=True, stderr=True,
+            remove=True,
+            mounts=mounts
+        )
+        print("===LOGS===")
+        print(bytes(logs).decode("utf-8"))
+        print("==========\n")
 
     return _func
 

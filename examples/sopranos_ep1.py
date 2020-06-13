@@ -5,7 +5,7 @@ from rikyu import Project, Seq, Uniq
 proj = Project(Path("/media/liam/Additional 2/Encodes/testdir/"))
 
 # TODO: Rerun for each disc, then comment out
-proj.rip_from_folder(Path("/media/liam/SOPRANOS_SEASON1_DISC2/"))\
+proj.rip_from_folder(Path("/media/liam/SOPRANOS_SEASON1_DISC1/"))\
     .title(1, Seq("episode", 1))\
     .title(3, Seq("episode", 2))\
     .title(4, Seq("episode", 3))\
