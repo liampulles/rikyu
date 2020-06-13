@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from rikyu import error, step
+from rikyu import error, step, docker
 from rikyu.source import Source
 
 
@@ -22,20 +22,27 @@ class Ripper:
             dest = title["dest"]
             dest_abs = Path(self.dest_base_path, dest)
             title_no = title["title_no"]
-            op_id = step.generate_op_id("Ripper.rip", f"{self.dvd_path} - title: {title_no}", dest)
-            step_defs += [step.StepDefinition(op_id, dest_abs, _step_exec(dest_abs))]
+            step_def = docker.docker_step_def(
+                "lpulles/dvdtools:latest",
+                [("dvd", self.dvd_path)],
+                dest_abs,
+                self.dest_base_path,
+                args=["/sh/extractTitle.sh", str(title_no), "/in/dvd", "/out"]
+            )
+            step_defs += [step_def]
         step.run_steps(step_defs)
 
 
 def _verify_dir_exists(path: Path):
     if not path.exists():
-        raise error.RipperIOError(message=path.as_uri() + " does not exist")
+        raise error.RipperIOError(message=str(path) + " does not exist")
     if not path.is_dir():
-        raise error.RipperIOError(message=path.as_uri() + " is not a directory")
+        raise error.RipperIOError(message=str(path) + " is not a directory")
 
 
 def _step_exec(path: Path):
     def _func():
         with Path(path, "extracted_test").open("w") as f:
             f.write("data!")
+
     return _func

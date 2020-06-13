@@ -47,7 +47,7 @@ def init(step_path: Path, op_id: str) -> bool:
     if not step_path.exists():
         step_path.mkdir(parents=True)
     if not step_path.is_dir():
-        raise error.StepIOError(message=step_path.as_uri() + " is not a directory")
+        raise error.StepIOError(message=str(step_path) + " is not a directory")
 
     # If empty or non-existent -> proceed
     if len(list(step_path.iterdir())) == 0:
@@ -56,8 +56,8 @@ def init(step_path: Path, op_id: str) -> bool:
     # If not-empty, but no .rikyu file exists -> fail (not managed by rikyu)
     rikyu_step_path = Path(step_path, ".rikyu.step")
     if not rikyu_step_path.exists():
-        raise error.StepIOError(message=step_path.as_uri() + "is a non-empty directory not managed by Rikyu. Please "
-                                                             "delete the directory or use another name.")
+        raise error.StepIOError(message=str(step_path) + "is a non-empty directory not managed by Rikyu. Please "
+                                        + "delete the directory or use another name.")
     step_record = file.load_obj(rikyu_step_path)
 
     # Previous hashes do not match current, consider partial -> empty dir and proceed
@@ -69,13 +69,17 @@ def init(step_path: Path, op_id: str) -> bool:
     # Previous hashes do match, but Op identifiers do not -> fail (should use different dir)
     if step_record.op_id != op_id:
         raise error.StepConflictError(message="Op identifier mismatch: A different step finished it's task in this "
-                                              "directory - cannot reuse. Please specify another directory or delete "
-                                              "this one.")
+                                              + "directory - cannot reuse. Please specify another directory or delete "
+                                              + "this one.")
 
     # Otherwise, skip
     return True
 
 
 def _clear_dir(path: Path):
+    print(f"(Removing partially complete job at {path})")
     for f in path.iterdir():
-        shutil.rmtree(f)
+        if f.is_file():
+            f.unlink(missing_ok=True)
+        else:
+            shutil.rmtree(f)
